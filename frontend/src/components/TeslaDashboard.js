@@ -36,6 +36,7 @@ const TeslaFinancialDashboard = () => {
   const generateFinancialModel = async (scenario) => {
     try {
       setLoading(true);
+      setError(null);
       const response = await axios.post(`${API}/tesla/model/${scenario}`);
       
       if (response.data.success) {
@@ -43,10 +44,14 @@ const TeslaFinancialDashboard = () => {
           ...prev,
           [scenario]: response.data.model
         }));
+        console.log(`✅ Generated ${scenario} model successfully:`, response.data.model);
+      } else {
+        setError(`Failed to generate ${scenario} scenario model`);
       }
       setLoading(false);
     } catch (err) {
-      setError(`Failed to generate ${scenario} scenario model`);
+      console.error(`❌ Error generating ${scenario} model:`, err);
+      setError(`Failed to generate ${scenario} scenario model: ${err.message}`);
       setLoading(false);
     }
   };

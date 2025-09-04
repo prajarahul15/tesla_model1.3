@@ -58,11 +58,20 @@ const TeslaFinancialDashboard = () => {
 
   const generateAllScenarios = async () => {
     setLoading(true);
+    setError(null);
     try {
       const scenarios = ['best', 'base', 'worst'];
-      const promises = scenarios.map(scenario => generateFinancialModel(scenario));
-      await Promise.all(promises);
+      
+      // Generate scenarios sequentially to avoid overwhelming the backend
+      for (const scenario of scenarios) {
+        console.log(`Generating ${scenario} scenario...`);
+        await generateFinancialModel(scenario);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay between requests
+      }
+      
+      console.log('✅ All scenarios generated successfully');
     } catch (err) {
+      console.error('❌ Failed to generate all scenarios:', err);
       setError('Failed to generate all scenarios');
     }
     setLoading(false);

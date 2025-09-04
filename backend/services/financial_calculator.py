@@ -219,3 +219,284 @@ class TeslaFinancialCalculator:
             total_shareholders_equity=total_shareholders_equity,
             total_liab_and_equity=total_liab_and_equity
         )
+    
+    def calculate_cash_flow_statement(self, assumptions: TeslaAssumptions,
+                                    income_stmt: IncomeStatement,
+                                    current_balance_sheet: BalanceSheet,
+                                    previous_balance_sheet: BalanceSheet = None) -> CashFlowStatement:
+        """Calculate cash flow statement using indirect method"""
+        
+        # Starting cash
+        if previous_balance_sheet:
+            beginning_cash = previous_balance_sheet.cash_and_equivalents
+        else:
+            beginning_cash = self.base_year_data["cash_and_equivalents"]
+        
+        # Operating Cash Flow
+        net_income = income_stmt.net_income
+        
+        # Non-cash items
+        annual_capex = income_stmt.total_revenue * assumptions.capex_as_percent_revenue
+        depreciation_amortization = (previous_balance_sheet.net_ppe if previous_balance_sheet 
+                                   else 50000000000) * assumptions.depreciation_rate
+        stock_based_compensation = income_stmt.total_revenue * 0.01  # 1% of revenue (estimated)
+        
+        # Working Capital Changes
+        if previous_balance_sheet:
+            change_accounts_receivable = (current_balance_sheet.accounts_receivable - 
+                                        previous_balance_sheet.accounts_receivable)
+            change_inventory = (current_balance_sheet.inventory - 
+                              previous_balance_sheet.inventory)
+            change_accounts_payable = (current_balance_sheet.accounts_payable - 
+                                     previous_balance_sheet.accounts_payable)
+        else:
+            # First year - working capital build
+            change_accounts_receivable = -current_balance_sheet.accounts_receivable
+            change_inventory = -current_balance_sheet.inventory
+            change_accounts_payable = current_balance_sheet.accounts_payable
+        
+        change_other_working_capital = 0  # Simplified
+        other_operating_activities = 0
+        
+        operating_cash_flow = (net_income + depreciation_amortization + stock_based_compensation -
+                             change_accounts_receivable - change_inventory + 
+                             change_accounts_payable + change_other_working_capital + 
+                             other_operating_activities)
+        
+        # Investing Cash Flow
+        capital_expenditures = -annual_capex  # Negative cash flow
+        acquisitions = 0  # No major acquisitions assumed
+        investments = 0  # Net investment activity
+        other_investing_activities = 0
+        
+        investing_cash_flow = (capital_expenditures + acquisitions + 
+                             investments + other_investing_activities)
+        
+        # Financing Cash Flow
+        debt_proceeds = 0  # No new debt issuance
+        debt_repayments = 0  # No major debt repayments
+        equity_proceeds = 0  # No new equity issuance
+        share_repurchases = 0  # Minimal share repurchases
+        dividends_paid = 0  # Tesla doesn't pay dividends
+        other_financing_activities = 0
+        
+        financing_cash_flow = (debt_proceeds - debt_repayments + equity_proceeds - 
+                             share_repurchases - dividends_paid + other_financing_activities)
+        
+        # Net Change in Cash
+        net_change_cash = operating_cash_flow + investing_cash_flow + financing_cash_flow
+        ending_cash = beginning_cash + net_change_cash
+        
+        # Free Cash Flow = Operating Cash Flow - CapEx
+        free_cash_flow = operating_cash_flow + capital_expenditures  # CapEx is negative
+        
+        return CashFlowStatement(
+            scenario=assumptions.scenario,
+            year=assumptions.year,
+            net_income=net_income,
+            depreciation_amortization=depreciation_amortization,
+            stock_based_compensation=stock_based_compensation,
+            change_accounts_receivable=change_accounts_receivable,
+            change_inventory=change_inventory,
+            change_accounts_payable=change_accounts_payable,
+            change_other_working_capital=change_other_working_capital,
+            other_operating_activities=other_operating_activities,
+            operating_cash_flow=operating_cash_flow,
+            capital_expenditures=capital_expenditures,
+            acquisitions=acquisitions,
+            investments=investments,
+            other_investing_activities=other_investing_activities,
+            investing_cash_flow=investing_cash_flow,
+            debt_proceeds=debt_proceeds,
+            debt_repayments=debt_repayments,
+            equity_proceeds=equity_proceeds,
+            share_repurchases=share_repurchases,
+            dividends_paid=dividends_paid,
+            other_financing_activities=other_financing_activities,
+            financing_cash_flow=financing_cash_flow,
+            net_change_cash=net_change_cash,
+            beginning_cash=beginning_cash,
+            ending_cash=ending_cash,
+            free_cash_flow=free_cash_flow
+        )
+    
+    def calculate_wacc(self, assumptions: TeslaAssumptions, 
+                      current_balance_sheet: BalanceSheet) -> Tuple[float, float, float]:
+        """Calculate WACC components and overall WACC"""
+        
+        # Cost of Equity = Risk-free rate + Beta * Market risk premium
+        cost_of_equity = (assumptions.risk_free_rate + 
+                         assumptions.beta * assumptions.market_risk_premium)
+        
+        # After-tax Cost of Debt = Interest rate * (1 - Tax rate)
+        cost_of_debt = assumptions.interest_rate_on_debt * (1 - assumptions.tax_rate)
+        
+        # Market values (simplified - using book values)
+        total_debt = current_balance_sheet.long_term_debt + current_balance_sheet.current_portion_debt
+        market_value_equity = current_balance_sheet.total_shareholders_equity
+        total_capital = total_debt + market_value_equity
+        
+        # Weights
+        weight_debt = total_debt / total_capital if total_capital > 0 else 0
+        weight_equity = market_value_equity / total_capital if total_capital > 0 else 1
+        
+        # WACC = (Weight of Equity * Cost of Equity) + (Weight of Debt * After-tax Cost of Debt)
+        wacc = (weight_equity * cost_of_equity) + (weight_debt * cost_of_debt)
+        
+        return cost_of_equity, cost_of_debt, wacc
+    
+    def calculate_dcf_valuation(self, scenario: ScenarioType, 
+                               cash_flow_statements: List[CashFlowStatement],
+                               final_year_assumptions: TeslaAssumptions,
+                               final_balance_sheet: BalanceSheet) -> DCFValuation:
+        """Calculate DCF valuation with terminal value"""
+        
+        # Extract free cash flows (2025-2029)
+        projected_free_cash_flows = [cf.free_cash_flow for cf in cash_flow_statements]
+        
+        # Calculate WACC using final year data
+        cost_of_equity, cost_of_debt, wacc = self.calculate_wacc(final_year_assumptions, final_balance_sheet)
+        
+        # Terminal Value Calculation
+        terminal_growth_rate = 0.025  # 2.5% perpetual growth
+        final_year_fcf = projected_free_cash_flows[-1]
+        terminal_fcf = final_year_fcf * (1 + terminal_growth_rate)
+        terminal_value = terminal_fcf / (wacc - terminal_growth_rate)
+        
+        # Present Value of Terminal Value (discounted back 5 years)
+        present_value_terminal = terminal_value / ((1 + wacc) ** 5)
+        
+        # Present Value of Projected Cash Flows
+        present_value_cash_flows = 0
+        for i, fcf in enumerate(projected_free_cash_flows):
+            pv_fcf = fcf / ((1 + wacc) ** (i + 1))
+            present_value_cash_flows += pv_fcf
+        
+        # Enterprise Value
+        enterprise_value = present_value_cash_flows + present_value_terminal
+        
+        # Equity Value = Enterprise Value + Net Cash
+        net_cash = final_balance_sheet.cash_and_equivalents - (
+            final_balance_sheet.long_term_debt + final_balance_sheet.current_portion_debt)
+        equity_value = enterprise_value + net_cash
+        
+        # Price per Share
+        shares_outstanding = 3178000000  # Tesla shares outstanding
+        price_per_share = equity_value / shares_outstanding
+        
+        # Sensitivity Analysis
+        sensitivity_growth_rates = [0.015, 0.020, 0.025, 0.030, 0.035]  # 1.5% to 3.5%
+        sensitivity_wacc_rates = [wacc - 0.01, wacc - 0.005, wacc, wacc + 0.005, wacc + 0.01]
+        
+        sensitivity_matrix = []
+        for growth in sensitivity_growth_rates:
+            row = []
+            for discount_rate in sensitivity_wacc_rates:
+                if discount_rate <= growth:
+                    row.append(0)  # Invalid (WACC must be > growth rate)
+                else:
+                    sens_terminal_fcf = final_year_fcf * (1 + growth)
+                    sens_terminal_value = sens_terminal_fcf / (discount_rate - growth)
+                    sens_pv_terminal = sens_terminal_value / ((1 + discount_rate) ** 5)
+                    
+                    sens_pv_cf = 0
+                    for i, fcf in enumerate(projected_free_cash_flows):
+                        sens_pv_cf += fcf / ((1 + discount_rate) ** (i + 1))
+                    
+                    sens_enterprise_value = sens_pv_cf + sens_pv_terminal
+                    sens_equity_value = sens_enterprise_value + net_cash
+                    sens_price = sens_equity_value / shares_outstanding
+                    row.append(sens_price)
+            sensitivity_matrix.append(row)
+        
+        return DCFValuation(
+            scenario=scenario,
+            cost_of_equity=cost_of_equity,
+            cost_of_debt=cost_of_debt,
+            wacc=wacc,
+            projected_free_cash_flows=projected_free_cash_flows,
+            terminal_growth_rate=terminal_growth_rate,
+            terminal_value=terminal_value,
+            present_value_terminal=present_value_terminal,
+            present_value_cash_flows=present_value_cash_flows,
+            enterprise_value=enterprise_value,
+            net_cash=net_cash,
+            equity_value=equity_value,
+            shares_outstanding=shares_outstanding,
+            price_per_share=price_per_share,
+            sensitivity_growth_rates=sensitivity_growth_rates,
+            sensitivity_wacc_rates=sensitivity_wacc_rates,
+            sensitivity_matrix=sensitivity_matrix
+        )
+    
+    def build_complete_financial_model(self, scenario: ScenarioType) -> FinancialModel:
+        """Build complete 5-year financial model for given scenario"""
+        
+        # Generate all yearly assumptions for scenario
+        all_assumptions = []
+        for year in [2025, 2026, 2027, 2028, 2029]:
+            assumptions_dict = get_tesla_assumptions(scenario, year)
+            assumptions = TeslaAssumptions(**assumptions_dict)
+            all_assumptions.append(assumptions)
+        
+        # Calculate financial statements year by year
+        income_statements = []
+        balance_sheets = []
+        cash_flow_statements = []
+        
+        previous_income = None
+        previous_balance = None
+        
+        for assumptions in all_assumptions:
+            # Income Statement
+            prev_data = {}
+            if previous_income:
+                prev_data = {
+                    "automotive_revenue": previous_income.automotive_revenue,
+                    "services_revenue": previous_income.services_revenue
+                }
+            
+            income_stmt = self.calculate_income_statement(assumptions, prev_data)
+            income_statements.append(income_stmt)
+            
+            # Balance Sheet (needs income statement)
+            balance_sheet = self.calculate_balance_sheet(
+                assumptions, income_stmt, previous_balance)
+            balance_sheets.append(balance_sheet)
+            
+            # Cash Flow Statement (needs both current and previous balance sheet)
+            cash_flow = self.calculate_cash_flow_statement(
+                assumptions, income_stmt, balance_sheet, previous_balance)
+            
+            # Update balance sheet cash with cash flow ending cash
+            balance_sheet.cash_and_equivalents = cash_flow.ending_cash
+            balance_sheet.total_current_assets = (
+                cash_flow.ending_cash + balance_sheet.accounts_receivable + 
+                balance_sheet.inventory + balance_sheet.prepaid_expenses + 
+                balance_sheet.other_current_assets
+            )
+            balance_sheet.total_assets = (
+                balance_sheet.total_current_assets + balance_sheet.total_non_current_assets
+            )
+            balance_sheet.total_liab_and_equity = (
+                balance_sheet.total_liabilities + balance_sheet.total_shareholders_equity
+            )
+            
+            cash_flow_statements.append(cash_flow)
+            
+            # Set for next iteration
+            previous_income = income_stmt
+            previous_balance = balance_sheet
+        
+        # DCF Valuation
+        dcf_valuation = self.calculate_dcf_valuation(
+            scenario, cash_flow_statements, all_assumptions[-1], balance_sheets[-1])
+        
+        return FinancialModel(
+            scenario=scenario,
+            assumptions=all_assumptions,
+            income_statements=income_statements,
+            balance_sheets=balance_sheets,
+            cash_flow_statements=cash_flow_statements,
+            dcf_valuation=dcf_valuation
+        )

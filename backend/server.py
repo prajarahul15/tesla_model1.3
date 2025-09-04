@@ -82,7 +82,7 @@ async def generate_financial_model(scenario: str):
         model = calculator.build_complete_financial_model(scenario_enum)
         
         # Store in database if available
-        if db:
+        if db is not None:
             try:
                 await db.financial_models.insert_one(model.dict())
             except Exception as e:

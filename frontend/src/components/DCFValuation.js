@@ -33,6 +33,11 @@ const DCFValuation = ({ scenario, model, generateModel, loading }) => {
     return formatCurrency(value);
   };
 
+  const formatNumber = (value) => {
+    if (!value) return '0';
+    return new Intl.NumberFormat('en-US').format(Math.round(value));
+  };
+
   const fetchSensitivityAnalysis = async () => {
     if (!model) return;
     

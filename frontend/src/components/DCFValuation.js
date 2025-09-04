@@ -8,6 +8,16 @@ const DCFValuation = ({ scenario, model, generateModel, loading }) => {
   const [sensitivityData, setSensitivityData] = useState(null);
   const [loadingSensitivity, setLoadingSensitivity] = useState(false);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('DCFValuation component - Props received:', {
+      scenario,
+      hasModel: !!model,
+      model: model,
+      loading
+    });
+  }, [scenario, model, loading]);
+
   const formatCurrency = (value) => {
     if (!value) return '$0';
     return new Intl.NumberFormat('en-US', {

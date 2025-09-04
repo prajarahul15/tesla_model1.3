@@ -1,34 +1,68 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Tesla Financial Model App Styles */
+.App {
+  background-color: #f9fafb;
+  min-height: 100vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Custom table styling for financial statements */
+.financial-table {
+  border-collapse: collapse;
+  width: 100%;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.financial-table th,
+.financial-table td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  text-align: right;
 }
 
-.App-link {
-    color: #61dafb;
+.financial-table th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  text-align: left;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.financial-table tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+/* Scenario color classes */
+.bg-green-50 { background-color: #f0fdf4; }
+.bg-blue-50 { background-color: #eff6ff; }
+.bg-red-50 { background-color: #fef2f2; }
+.bg-purple-50 { background-color: #faf5ff; }
+.bg-yellow-50 { background-color: #fefce8; }
+
+.text-green-700 { color: #15803d; }
+.text-blue-700 { color: #1d4ed8; }
+.text-red-700 { color: #b91c1c; }
+.text-purple-700 { color: #7c3aed; }
+.text-yellow-700 { color: #a16207; }
+
+.border-green-200 { border-color: #bbf7d0; }
+.border-blue-200 { border-color: #bfdbfe; }
+.border-red-200 { border-color: #fecaca; }
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .financial-table {
+    font-size: 0.875rem;
+  }
+  
+  .financial-table th,
+  .financial-table td {
+    padding: 6px 8px;
+  }
 }

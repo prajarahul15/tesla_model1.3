@@ -240,10 +240,12 @@ async def generate_enhanced_financial_model(scenario: str):
         scenario_enum = ScenarioType(scenario.lower())
         model = enhanced_calculator.build_enhanced_financial_model(scenario_enum)
         
-        # Store in database if available
+        # Store in database if available (create a copy to avoid ObjectId issues)
         if db is not None:
             try:
-                await db.enhanced_financial_models.insert_one(model)
+                import copy
+                model_copy = copy.deepcopy(model)
+                await db.enhanced_financial_models.insert_one(model_copy)
             except Exception as e:
                 print(f"Database insert error: {e}")
         

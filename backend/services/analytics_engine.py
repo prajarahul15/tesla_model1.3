@@ -86,11 +86,11 @@ class AnalyticsEngine:
             
             lineup_metrics.append({
                 'lineup': lineup,
-                'actual': lineup_actual,
-                'plan': lineup_plan,
-                'variance': lineup_variance,
+                'actual': int(lineup_actual),
+                'plan': int(lineup_plan),
+                'variance': float(lineup_variance),
                 'monthly_trends': monthly_data.to_dict('records'),
-                'records': len(lineup_data)
+                'records': int(len(lineup_data))
             })
         
         metrics['lineup_breakdown'] = lineup_metrics

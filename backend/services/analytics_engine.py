@@ -46,9 +46,9 @@ class AnalyticsEngine:
         metrics = {}
         
         # Overall metrics
-        metrics['total_actual'] = self.sample_data['Actual'].sum()
-        metrics['total_plan'] = self.sample_data['Plan'].sum()
-        metrics['total_variance'] = ((metrics['total_actual'] - metrics['total_plan']) / metrics['total_plan'] * 100) if metrics['total_plan'] > 0 else 0
+        metrics['total_actual'] = int(self.sample_data['Actual'].sum())
+        metrics['total_plan'] = int(self.sample_data['Plan'].sum())
+        metrics['total_variance'] = float(((metrics['total_actual'] - metrics['total_plan']) / metrics['total_plan'] * 100) if metrics['total_plan'] > 0 else 0)
         
         # Profile level breakdown
         profile_metrics = []

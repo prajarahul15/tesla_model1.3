@@ -16,6 +16,7 @@ sys.path.append(str(Path(__file__).parent))
 
 from models.financial_models import *
 from services.financial_calculator import TeslaFinancialCalculator
+from services.analytics_engine import AnalyticsEngine
 from data.tesla_data import generate_all_tesla_assumptions, TESLA_BASE_YEAR_DATA, MACRO_ASSUMPTIONS
 
 ROOT_DIR = Path(__file__).parent
@@ -34,15 +35,170 @@ except KeyError as e:
     db = None
 
 # Create the main app without a prefix
-app = FastAPI(title="Tesla Financial Model API", version="1.0.0")
+app = FastAPI(title="Tesla Financial Model & Analytics API", version="1.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Initialize calculator
-calculator = TeslaFinancialCalculator()
+# Initialize calculators
+tesla_calculator = TeslaFinancialCalculator()
+analytics_engine = AnalyticsEngine()
 
-# Tesla Financial Model Endpoints
+# Initialize analytics engine on startup
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Tesla Financial Model & Analytics API started successfully")
+    logger.info("Loading analytics data...")
+    
+    # Load analytics data
+    if analytics_engine.load_data():
+        logger.info("Analytics data loaded successfully")
+    else:
+        logger.error("Failed to load analytics data")
+
+# Professional Dashboard API Endpoints
+
+@api_router.get("/analytics/overview")
+async def get_data_overview():
+    """Get comprehensive data overview metrics"""
+    try:
+        metrics = analytics_engine.get_data_overview_metrics()
+        if metrics is None:
+            raise HTTPException(status_code=500, detail="Failed to calculate overview metrics")
+        
+        return {
+            "success": True,
+            "data": metrics
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculating overview: {str(e)}")
+
+@api_router.get("/analytics/economic-variables")
+async def get_economic_variables():
+    """Get economic variables data for analysis"""
+    try:
+        econ_data = analytics_engine.get_economic_variables_data()
+        if econ_data is None:
+            raise HTTPException(status_code=500, detail="Economic variables data not available")
+        
+        return {
+            "success": True,
+            "data": econ_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting economic data: {str(e)}")
+
+@api_router.get("/analytics/lineups")
+async def get_available_lineups():
+    """Get list of available lineups for forecasting"""
+    try:
+        if analytics_engine.sample_data is None:
+            if not analytics_engine.load_data():
+                raise HTTPException(status_code=500, detail="Failed to load data")
+        
+        lineups = analytics_engine.sample_data['Lineup'].unique().tolist()
+        
+        # Get metadata for each lineup
+        lineup_metadata = []
+        for lineup in lineups:
+            lineup_data = analytics_engine.sample_data[analytics_engine.sample_data['Lineup'] == lineup]
+            lineup_metadata.append({
+                'lineup': lineup,
+                'profile': lineup_data['Profile'].iloc[0],
+                'line_item': lineup_data['Line_Item'].iloc[0],
+                'records': len(lineup_data),
+                'date_range': {
+                    'start': lineup_data['DATE'].min().strftime('%Y-%m-%d'),
+                    'end': lineup_data['DATE'].max().strftime('%Y-%m-%d')
+                },
+                'total_actual': lineup_data['Actual'].sum(),
+                'total_plan': lineup_data['Plan'].sum()
+            })
+        
+        return {
+            "success": True,
+            "lineups": lineup_metadata
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting lineups: {str(e)}")
+
+class ForecastRequest(BaseModel):
+    lineup: str
+    forecast_type: str  # 'univariate' or 'multivariate'
+    months_ahead: int = 12
+
+@api_router.post("/analytics/forecast")
+async def generate_forecast(request: ForecastRequest):
+    """Generate forecast for specified lineup and type"""
+    try:
+        if request.forecast_type not in ['univariate', 'multivariate']:
+            raise HTTPException(status_code=400, detail="Forecast type must be 'univariate' or 'multivariate'")
+        
+        if request.months_ahead < 1 or request.months_ahead > 24:
+            raise HTTPException(status_code=400, detail="Months ahead must be between 1 and 24")
+        
+        # Ensure data is loaded
+        if analytics_engine.sample_data is None:
+            if not analytics_engine.load_data():
+                raise HTTPException(status_code=500, detail="Failed to load data")
+        
+        # Check if lineup exists
+        available_lineups = analytics_engine.sample_data['Lineup'].unique()
+        if request.lineup not in available_lineups:
+            raise HTTPException(status_code=400, detail=f"Lineup {request.lineup} not found. Available: {list(available_lineups)}")
+        
+        # Generate forecast
+        forecast_result = analytics_engine.generate_forecast(
+            request.lineup, 
+            request.forecast_type, 
+            request.months_ahead
+        )
+        
+        if forecast_result is None:
+            raise HTTPException(status_code=500, detail="Failed to generate forecast")
+        
+        return {
+            "success": True,
+            "forecast": forecast_result
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating forecast: {str(e)}")
+
+@api_router.post("/analytics/compare-forecasts")
+async def compare_forecasts(request: ForecastRequest):
+    """Compare univariate vs multivariate forecasting methods"""
+    try:
+        # Ensure data is loaded
+        if analytics_engine.sample_data is None:
+            if not analytics_engine.load_data():
+                raise HTTPException(status_code=500, detail="Failed to load data")
+        
+        # Check if lineup exists
+        available_lineups = analytics_engine.sample_data['Lineup'].unique()
+        if request.lineup not in available_lineups:
+            raise HTTPException(status_code=400, detail=f"Lineup {request.lineup} not found")
+        
+        # Generate comparison
+        comparison_result = analytics_engine.compare_forecast_methods(
+            request.lineup, 
+            request.months_ahead
+        )
+        
+        if comparison_result is None:
+            raise HTTPException(status_code=500, detail="Failed to generate forecast comparison")
+        
+        return {
+            "success": True,
+            "comparison": comparison_result
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error comparing forecasts: {str(e)}")
+
+# Tesla Financial Model Endpoints (existing)
 
 @api_router.get("/tesla/overview")
 async def get_tesla_overview():
@@ -79,7 +235,7 @@ async def generate_financial_model(scenario: str):
     """Generate complete financial model for scenario"""
     try:
         scenario_enum = ScenarioType(scenario.lower())
-        model = calculator.build_complete_financial_model(scenario_enum)
+        model = tesla_calculator.build_complete_financial_model(scenario_enum)
         
         # Store in database if available
         if db is not None:
@@ -103,7 +259,7 @@ async def get_income_statements(scenario: str):
     """Get income statements for all years in scenario"""
     try:
         scenario_enum = ScenarioType(scenario.lower())
-        model = calculator.build_complete_financial_model(scenario_enum)
+        model = tesla_calculator.build_complete_financial_model(scenario_enum)
         
         income_statements = [stmt.dict() for stmt in model.income_statements]
         
@@ -121,7 +277,7 @@ async def get_balance_sheets(scenario: str):
     """Get balance sheets for all years in scenario"""
     try:
         scenario_enum = ScenarioType(scenario.lower())
-        model = calculator.build_complete_financial_model(scenario_enum)
+        model = tesla_calculator.build_complete_financial_model(scenario_enum)
         
         balance_sheets = [bs.dict() for bs in model.balance_sheets]
         
@@ -139,7 +295,7 @@ async def get_cash_flows(scenario: str):
     """Get cash flow statements for all years in scenario"""
     try:
         scenario_enum = ScenarioType(scenario.lower())
-        model = calculator.build_complete_financial_model(scenario_enum)
+        model = tesla_calculator.build_complete_financial_model(scenario_enum)
         
         cash_flows = [cf.dict() for cf in model.cash_flow_statements]
         
@@ -157,7 +313,7 @@ async def get_dcf_valuation(scenario: str):
     """Get DCF valuation for scenario"""
     try:
         scenario_enum = ScenarioType(scenario.lower())
-        model = calculator.build_complete_financial_model(scenario_enum)
+        model = tesla_calculator.build_complete_financial_model(scenario_enum)
         
         return {
             "scenario": scenario,
@@ -175,7 +331,7 @@ async def get_scenario_comparison():
         models = {}
         for scenario in ["best", "base", "worst"]:
             scenario_enum = ScenarioType(scenario)
-            model = calculator.build_complete_financial_model(scenario_enum)
+            model = tesla_calculator.build_complete_financial_model(scenario_enum)
             models[scenario] = model.dict()
         
         # Create comparison summary
@@ -234,7 +390,7 @@ async def get_sensitivity_analysis(scenario: str):
     """Get detailed sensitivity analysis for DCF valuation"""
     try:
         scenario_enum = ScenarioType(scenario.lower())
-        model = calculator.build_complete_financial_model(scenario_enum)
+        model = tesla_calculator.build_complete_financial_model(scenario_enum)
         
         dcf = model.dcf_valuation
         
@@ -268,7 +424,7 @@ class StatusCheckCreate(BaseModel):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Tesla Financial Model API - Ready for Analysis"}
+    return {"message": "Tesla Financial Model & Analytics API - Ready for Analysis"}
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
@@ -308,11 +464,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Tesla Financial Model API started successfully")
-    logger.info("Available endpoints: /api/tesla/overview, /api/tesla/model/{scenario}, /api/tesla/comparison")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

@@ -44,6 +44,8 @@ api_router = APIRouter(prefix="/api")
 
 # Initialize calculators
 tesla_calculator = TeslaFinancialCalculator()
+enhanced_calculator = EnhancedTeslaCalculator()
+segment_analyzer = TeslaSegmentAnalyzer()
 analytics_engine = AnalyticsEngine()
 
 # Initialize analytics engine on startup

@@ -396,9 +396,9 @@ class EnhancedTeslaCalculator:
         dcf_valuation = self.calculate_enhanced_dcf_valuation(scenario, income_statements)
         
         return {
-            "scenario": scenario,
+            "scenario": scenario.value,
             "model_name": "Enhanced Tesla Financial Model with Driver-Based Forecasting",
-            "forecast_years": forecast_years,
+            "forecast_years": [int(year) for year in forecast_years],
             "income_statements": income_statements,
             "dcf_valuation": dcf_valuation,
             "model_features": [

@@ -4,12 +4,14 @@ import ScenarioTabs from './ScenarioTabs';
 import FinancialStatements from './FinancialStatements';
 import DCFValuation from './DCFValuation';
 import ScenarioComparison from './ScenarioComparison';
+import DataOverview from './DataOverview';
+import ForecastPage from './ForecastPage';
 import LoadingSpinner from './LoadingSpinner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const TeslaFinancialDashboard = () => {
+const TeslaDashboard = () => {
   const [activeScenario, setActiveScenario] = useState('base');
   const [teslaData, setTeslaData] = useState(null);
   const [financialModels, setFinancialModels] = useState({});
@@ -98,8 +100,8 @@ const TeslaFinancialDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Tesla Financial Model</h1>
-              <p className="text-sm text-gray-600 mt-1">5-Year DCF Analysis & Scenario Planning (2025-2029)</p>
+              <h1 className="text-3xl font-bold text-gray-900">Tesla Financial Model & Analytics</h1>
+              <p className="text-sm text-gray-600 mt-1">5-Year DCF Analysis, Scenario Planning & Professional Dashboard</p>
             </div>
             <div className="flex space-x-3">
               <button
@@ -159,10 +161,12 @@ const TeslaFinancialDashboard = () => {
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
               {[
-                { id: 'overview', name: 'Overview' },
+                { id: 'overview', name: 'Tesla Overview' },
                 { id: 'statements', name: 'Financial Statements' },
                 { id: 'dcf', name: 'DCF Valuation' },
-                { id: 'comparison', name: 'Scenario Comparison' }
+                { id: 'comparison', name: 'Scenario Comparison' },
+                { id: 'data-overview', name: 'Data Overview' },
+                { id: 'forecast', name: 'Advanced Forecast' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -215,6 +219,14 @@ const TeslaFinancialDashboard = () => {
                 loading={loading}
               />
             )}
+
+            {activeTab === 'data-overview' && (
+              <DataOverview />
+            )}
+
+            {activeTab === 'forecast' && (
+              <ForecastPage />
+            )}
           </div>
         </div>
       </main>
@@ -222,4 +234,4 @@ const TeslaFinancialDashboard = () => {
   );
 };
 
-export default TeslaFinancialDashboard;
+export default TeslaDashboard;

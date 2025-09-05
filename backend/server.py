@@ -206,7 +206,241 @@ async def compare_forecasts(request: CompareRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error comparing forecasts: {str(e)}")
 
-# Tesla Financial Model Endpoints (existing)
+# Enhanced Tesla Financial Model Endpoints (PHASE 1-3)
+
+@api_router.post("/tesla/enhanced-model/{scenario}")
+async def generate_enhanced_financial_model(scenario: str):
+    """Generate enhanced financial model with driver-based calculations"""
+    try:
+        scenario_enum = ScenarioType(scenario.lower())
+        model = enhanced_calculator.build_enhanced_financial_model(scenario_enum)
+        
+        # Store in database if available
+        if db is not None:
+            try:
+                await db.enhanced_financial_models.insert_one(model)
+            except Exception as e:
+                print(f"Database insert error: {e}")
+        
+        return {
+            "success": True,
+            "message": f"Enhanced financial model generated for {scenario} scenario",
+            "model": model
+        }
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid scenario. Use 'best', 'base', or 'worst'")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating enhanced model: {str(e)}")
+
+@api_router.get("/tesla/enhanced-comparison")
+async def get_enhanced_scenario_comparison():
+    """Enhanced scenario comparison with vehicle models and 10-year forecasts"""
+    try:
+        enhanced_models = {}
+        for scenario in ["best", "base", "worst"]:
+            scenario_enum = ScenarioType(scenario)
+            model = enhanced_calculator.build_enhanced_financial_model(scenario_enum)
+            enhanced_models[scenario] = model
+        
+        # Create enhanced comparison
+        comparison = {
+            "revenue_comparison": {},
+            "valuation_comparison": {},
+            "vehicle_model_comparison": {},
+            "segment_comparison": {}
+        }
+        
+        for scenario, model in enhanced_models.items():
+            # Final year projections (2033)
+            final_income = model["income_statements"][-1]
+            dcf = model["dcf_valuation"]
+            
+            comparison["revenue_comparison"][scenario] = {
+                "final_year_revenue": final_income["total_revenue"],
+                "automotive_revenue": final_income["automotive_revenue"],
+                "energy_revenue": final_income["energy_revenue"],
+                "services_revenue": final_income["services_revenue"],
+                "10yr_cagr": ((final_income["total_revenue"] / TESLA_BASE_YEAR_DATA["total_revenue"]) ** (1/10)) - 1
+            }
+            
+            comparison["valuation_comparison"][scenario] = {
+                "price_per_share": dcf["price_per_share"],
+                "enterprise_value": dcf["enterprise_value"],
+                "wacc": dcf["wacc"]
+            }
+            
+            # Vehicle model breakdown for final year
+            vehicle_breakdown = final_income["revenue_breakdown"]["automotive_revenue_by_model"]
+            comparison["vehicle_model_comparison"][scenario] = vehicle_breakdown
+            
+            # Segment analysis
+            comparison["segment_comparison"][scenario] = {
+                "automotive_margin": final_income["margins"]["automotive_margin"],
+                "energy_margin": final_income["margins"]["energy_margin"],
+                "services_margin": final_income["margins"]["services_margin"]
+            }
+        
+        return {
+            "success": True,
+            "enhanced_models": enhanced_models,
+            "comparison_summary": comparison
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/tesla/vehicle-analysis/{scenario}")
+async def get_vehicle_model_analysis(scenario: str):
+    """PHASE 1: Detailed vehicle model analysis"""
+    try:
+        scenario_enum = ScenarioType(scenario.lower())
+        model = enhanced_calculator.build_enhanced_financial_model(scenario_enum)
+        
+        vehicle_analysis = {
+            "scenario": scenario,
+            "vehicle_trends": {},
+            "model_performance": {},
+            "delivery_projections": {}
+        }
+        
+        # Extract vehicle data for all years
+        for income_stmt in model["income_statements"]:
+            year = income_stmt["year"]
+            vehicle_data = income_stmt["revenue_breakdown"]["automotive_revenue_by_model"]
+            
+            vehicle_analysis["vehicle_trends"][year] = vehicle_data
+        
+        # Calculate model performance metrics
+        for model_key in vehicle_analysis["vehicle_trends"][2024]:
+            initial_year_data = vehicle_analysis["vehicle_trends"][2024][model_key]
+            final_year_data = vehicle_analysis["vehicle_trends"][2033][model_key]
+            
+            delivery_cagr = ((final_year_data["deliveries"] / initial_year_data["deliveries"]) ** (1/9)) - 1 if initial_year_data["deliveries"] > 0 else 0
+            revenue_cagr = ((final_year_data["revenue"] / initial_year_data["revenue"]) ** (1/9)) - 1 if initial_year_data["revenue"] > 0 else 0
+            
+            vehicle_analysis["model_performance"][model_key] = {
+                "delivery_cagr": delivery_cagr,
+                "revenue_cagr": revenue_cagr,
+                "initial_deliveries": initial_year_data["deliveries"],
+                "final_deliveries": final_year_data["deliveries"],
+                "initial_asp": initial_year_data["asp"],
+                "final_asp": final_year_data["asp"],
+                "asp_trend": (final_year_data["asp"] / initial_year_data["asp"]) - 1 if initial_year_data["asp"] > 0 else 0
+            }
+        
+        return {
+            "success": True,
+            "vehicle_analysis": vehicle_analysis
+        }
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid scenario")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/tesla/segment-analysis")
+async def get_business_segment_analysis():
+    """PHASE 2: Business segment analysis across all scenarios"""
+    try:
+        enhanced_models = {}
+        for scenario in ["best", "base", "worst"]:
+            scenario_enum = ScenarioType(scenario)
+            model = enhanced_calculator.build_enhanced_financial_model(scenario_enum)
+            enhanced_models[scenario] = model
+        
+        segment_analysis = segment_analyzer.analyze_business_segments(enhanced_models)
+        
+        return {
+            "success": True,
+            "segment_analysis": segment_analysis
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/tesla/bridge-analysis/{scenario}")
+async def get_bridge_analysis(scenario: str):
+    """PHASE 3: Bridge analysis (waterfall charts)"""
+    try:
+        scenario_enum = ScenarioType(scenario.lower())
+        model = enhanced_calculator.build_enhanced_financial_model(scenario_enum)
+        
+        # Calculate revenue bridge from first to last year
+        income_statements = model["income_statements"]
+        
+        if len(income_statements) >= 2:
+            base_year_data = income_statements[0]
+            final_year_data = income_statements[-1]
+            
+            revenue_bridge = segment_analyzer.calculate_revenue_bridge(base_year_data, final_year_data)
+            
+            # Cash flow bridge
+            dcf_data = model["dcf_valuation"]
+            if dcf_data["projected_free_cash_flows"]:
+                base_fcf = dcf_data["projected_free_cash_flows"][0]
+                final_fcf = dcf_data["projected_free_cash_flows"][-1]
+                cash_flow_bridge = segment_analyzer.calculate_cash_flow_bridge(base_fcf, final_fcf, income_statements)
+            else:
+                cash_flow_bridge = {}
+            
+            return {
+                "success": True,
+                "scenario": scenario,
+                "revenue_bridge": revenue_bridge,
+                "cash_flow_bridge": cash_flow_bridge
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Insufficient data for bridge analysis")
+            
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid scenario")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/tesla/price-volume-mix")
+async def get_price_volume_mix_analysis():
+    """PHASE 3: Price-Volume-Mix analysis"""
+    try:
+        enhanced_models = {}
+        for scenario in ["best", "base", "worst"]:
+            scenario_enum = ScenarioType(scenario)
+            model = enhanced_calculator.build_enhanced_financial_model(scenario_enum)
+            enhanced_models[scenario] = model
+        
+        pvm_analysis = segment_analyzer.analyze_price_volume_mix(enhanced_models)
+        
+        return {
+            "success": True,
+            "price_volume_mix_analysis": pvm_analysis
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/tesla/comprehensive-analysis")
+async def get_comprehensive_analysis():
+    """Complete analysis combining all Phase 1-3 features"""
+    try:
+        enhanced_models = {}
+        for scenario in ["best", "base", "worst"]:
+            scenario_enum = ScenarioType(scenario)
+            model = enhanced_calculator.build_enhanced_financial_model(scenario_enum)
+            enhanced_models[scenario] = model
+        
+        comprehensive_analysis = segment_analyzer.generate_comprehensive_analysis(enhanced_models)
+        
+        return {
+            "success": True,
+            "comprehensive_analysis": comprehensive_analysis,
+            "model_features": [
+                "10-year forecasts (2024-2033)",
+                "Vehicle model granularity (6 models)",
+                "Driver-based revenue calculations",
+                "Business segment analysis (Automotive/Energy/Services)",
+                "Enhanced DCF with sensitivity analysis",
+                "Working capital modeling",
+                "Bridge analysis (Revenue/Cash Flow)",
+                "Price-Volume-Mix analytics"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/tesla/overview")
 async def get_tesla_overview():

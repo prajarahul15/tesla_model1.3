@@ -198,11 +198,11 @@ class EnhancedTeslaCalculator:
         eps = net_income / shares_outstanding
         
         return {
-            "scenario": scenario,
-            "year": year,
+            "scenario": scenario.value,  # Convert enum to string
+            "year": int(year),
             "revenue_breakdown": revenue_breakdown,
             "margins": margins,
-            "drivers": drivers,
+            "drivers": {k: float(v) if isinstance(v, (int, float)) else v for k, v in drivers.items()},
             
             # Income statement items
             "automotive_revenue": revenue_breakdown["total_automotive_revenue"],

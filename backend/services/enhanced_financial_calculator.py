@@ -48,12 +48,12 @@ class EnhancedTeslaCalculator:
                 final_asp = adjusted_asp * pricing_trend
                 
                 # Calculate model revenue
-                model_revenue = delivery_count * final_asp
+                model_revenue = float(delivery_count * final_asp)
                 
                 revenue_breakdown["automotive_revenue_by_model"][model_key] = {
-                    "deliveries": delivery_count,
-                    "asp": final_asp,
-                    "revenue": model_revenue,
+                    "deliveries": int(delivery_count),
+                    "asp": float(final_asp),
+                    "revenue": float(model_revenue),
                     "model_name": model_data["name"]
                 }
                 

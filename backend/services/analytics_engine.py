@@ -60,11 +60,11 @@ class AnalyticsEngine:
             
             profile_metrics.append({
                 'profile': profile,
-                'actual': profile_actual,
-                'plan': profile_plan,
-                'variance': profile_variance,
-                'line_items': profile_data['Line_Item'].nunique(),
-                'records': len(profile_data)
+                'actual': int(profile_actual),
+                'plan': int(profile_plan),
+                'variance': float(profile_variance),
+                'line_items': int(profile_data['Line_Item'].nunique()),
+                'records': int(len(profile_data))
             })
         
         metrics['profile_breakdown'] = profile_metrics

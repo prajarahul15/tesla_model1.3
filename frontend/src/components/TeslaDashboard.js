@@ -102,7 +102,7 @@ const TeslaDashboard = () => {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Tesla Financial Model & Analytics</h1>
-              <p className="text-sm text-gray-600 mt-1">5-Year DCF Analysis, Scenario Planning & Professional Dashboard</p>
+              <p className="text-sm text-gray-600 mt-1">Enhanced with Phase 1-3: Vehicle Models, 10-Year Forecasts, Segment Analysis & Bridge Charts</p>
             </div>
             <div className="flex space-x-3">
               <button

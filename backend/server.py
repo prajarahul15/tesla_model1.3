@@ -106,13 +106,13 @@ async def get_available_lineups():
                 'lineup': lineup,
                 'profile': lineup_data['Profile'].iloc[0],
                 'line_item': lineup_data['Line_Item'].iloc[0],
-                'records': len(lineup_data),
+                'records': int(len(lineup_data)),
                 'date_range': {
                     'start': lineup_data['DATE'].min().strftime('%Y-%m-%d'),
                     'end': lineup_data['DATE'].max().strftime('%Y-%m-%d')
                 },
-                'total_actual': lineup_data['Actual'].sum(),
-                'total_plan': lineup_data['Plan'].sum()
+                'total_actual': int(lineup_data['Actual'].sum()),
+                'total_plan': int(lineup_data['Plan'].sum())
             })
         
         return {

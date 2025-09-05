@@ -360,23 +360,23 @@ class EnhancedTeslaCalculator:
             sensitivity_matrix.append(row)
         
         return {
-            "scenario": scenario,
-            "cost_of_equity": cost_of_equity,
-            "cost_of_debt": cost_of_debt,
-            "wacc": wacc,
-            "projected_free_cash_flows": free_cash_flows,
-            "terminal_growth_rate": terminal_growth_rate,
-            "terminal_value": terminal_value,
-            "present_value_terminal": present_value_terminal,
-            "present_value_cash_flows": present_value_cash_flows,
-            "enterprise_value": enterprise_value,
-            "net_cash": net_cash,
-            "equity_value": equity_value,
-            "shares_outstanding": shares_outstanding,
-            "price_per_share": price_per_share,
-            "sensitivity_growth_rates": sensitivity_growth_rates,
-            "sensitivity_wacc_rates": sensitivity_wacc_rates,
-            "sensitivity_matrix": sensitivity_matrix
+            "scenario": scenario.value,
+            "cost_of_equity": float(cost_of_equity),
+            "cost_of_debt": float(cost_of_debt),
+            "wacc": float(wacc),
+            "projected_free_cash_flows": [float(fcf) for fcf in free_cash_flows],
+            "terminal_growth_rate": float(terminal_growth_rate),
+            "terminal_value": float(terminal_value),
+            "present_value_terminal": float(present_value_terminal),
+            "present_value_cash_flows": float(present_value_cash_flows),
+            "enterprise_value": float(enterprise_value),
+            "net_cash": float(net_cash),
+            "equity_value": float(equity_value),
+            "shares_outstanding": float(shares_outstanding),
+            "price_per_share": float(price_per_share),
+            "sensitivity_growth_rates": [float(x) for x in sensitivity_growth_rates],
+            "sensitivity_wacc_rates": [float(x) for x in sensitivity_wacc_rates],
+            "sensitivity_matrix": [[float(x) for x in row] for row in sensitivity_matrix]
         }
     
     def build_enhanced_financial_model(self, scenario: ScenarioType, forecast_years: List[int] = None) -> Dict:

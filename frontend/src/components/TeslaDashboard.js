@@ -163,8 +163,11 @@ const TeslaDashboard = () => {
             <nav className="flex space-x-8 px-6">
               {[
                 { id: 'overview', name: 'Tesla Overview' },
+                { id: 'vehicle-models', name: 'Vehicle Models' },
                 { id: 'statements', name: 'Financial Statements' },
                 { id: 'dcf', name: 'DCF Valuation' },
+                { id: 'segments', name: 'Business Segments' },
+                { id: 'bridge-analysis', name: 'Bridge Analysis' },
                 { id: 'comparison', name: 'Scenario Comparison' },
                 { id: 'data-overview', name: 'Data Overview' },
                 { id: 'forecast', name: 'Advanced Forecast' }

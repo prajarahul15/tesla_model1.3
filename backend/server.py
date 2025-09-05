@@ -16,6 +16,8 @@ sys.path.append(str(Path(__file__).parent))
 
 from models.financial_models import *
 from services.financial_calculator import TeslaFinancialCalculator
+from services.enhanced_financial_calculator import EnhancedTeslaCalculator
+from services.segment_analyzer import TeslaSegmentAnalyzer
 from services.analytics_engine import AnalyticsEngine
 from data.tesla_data import generate_all_tesla_assumptions, TESLA_BASE_YEAR_DATA, MACRO_ASSUMPTIONS
 

@@ -6,6 +6,7 @@ import DCFValuation from './DCFValuation';
 import ScenarioComparison from './ScenarioComparison';
 import DataOverview from './DataOverview';
 import ForecastPage from './ForecastPage';
+import { VehicleModelAnalysis, BusinessSegmentAnalysis, BridgeAnalysis } from './EnhancedTeslaComponents';
 import LoadingSpinner from './LoadingSpinner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;

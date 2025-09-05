@@ -59,31 +59,31 @@ class EnhancedTeslaCalculator:
                 
                 total_automotive_revenue += model_revenue
         
-        revenue_breakdown["total_automotive_revenue"] = total_automotive_revenue
+        revenue_breakdown["total_automotive_revenue"] = float(total_automotive_revenue)
         
         # Calculate Energy & Storage revenue (based on growth rates)
         if year <= 2023:
-            energy_revenue = self.historical_data["historical_revenue"][year]["energy"] * 1000000
+            energy_revenue = float(self.historical_data["historical_revenue"][year]["energy"] * 1000000)
         else:
             # Start from 2023 base and compound
             base_energy_2023 = self.historical_data["historical_revenue"][2023]["energy"] * 1000000
             years_from_2023 = year - 2023
-            energy_revenue = base_energy_2023 * ((1 + drivers["energy_growth_rate"]) ** years_from_2023)
+            energy_revenue = float(base_energy_2023 * ((1 + drivers["energy_growth_rate"]) ** years_from_2023))
         
         revenue_breakdown["energy_revenue"] = energy_revenue
         
         # Calculate Services revenue (based on growth rates)
         if year <= 2023:
-            services_revenue = self.historical_data["historical_revenue"][year]["services"] * 1000000
+            services_revenue = float(self.historical_data["historical_revenue"][year]["services"] * 1000000)
         else:
             base_services_2023 = self.historical_data["historical_revenue"][2023]["services"] * 1000000
             years_from_2023 = year - 2023
-            services_revenue = base_services_2023 * ((1 + drivers["services_growth_rate"]) ** years_from_2023)
+            services_revenue = float(base_services_2023 * ((1 + drivers["services_growth_rate"]) ** years_from_2023))
         
         revenue_breakdown["services_revenue"] = services_revenue
         
         # Total revenue
-        revenue_breakdown["total_revenue"] = (
+        revenue_breakdown["total_revenue"] = float(
             total_automotive_revenue + energy_revenue + services_revenue
         )
         

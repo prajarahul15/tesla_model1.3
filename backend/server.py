@@ -166,8 +166,12 @@ async def generate_forecast(request: ForecastRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating forecast: {str(e)}")
 
+class CompareRequest(BaseModel):
+    lineup: str
+    months_ahead: int = 12
+
 @api_router.post("/analytics/compare-forecasts")
-async def compare_forecasts(request: ForecastRequest):
+async def compare_forecasts(request: CompareRequest):
     """Compare univariate vs multivariate forecasting methods"""
     try:
         # Ensure data is loaded

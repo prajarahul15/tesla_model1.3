@@ -101,7 +101,7 @@ const ForecastPage = () => {
     <div className="space-y-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-2">🔮 Advanced Forecasting Analytics</h2>
+        <h2 className="text-2xl font-bold mb-2">Advanced Forecasting Analytics</h2>
         <p className="text-purple-100">Univariate and multivariate forecasting with economic variables</p>
       </div>
 

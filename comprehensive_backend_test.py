@@ -179,10 +179,15 @@ class ComprehensiveAPITester:
                 # Check for key metrics
                 if 'profile_breakdown' in data:
                     profiles = data['profile_breakdown']
-                    print(f"   📊 Profiles found: {list(profiles.keys())}")
+                    if isinstance(profiles, list):
+                        profile_names = [p['profile'] for p in profiles]
+                        print(f"   📊 Profiles found: {profile_names}")
+                        print(f"   📊 Total Actual: {data.get('total_actual', 0):,}")
+                        print(f"   📊 Total Plan: {data.get('total_plan', 0):,}")
+                        print(f"   📊 Total Variance: {data.get('total_variance', 0):.2f}%")
                 
-                if 'lineup_analysis' in data:
-                    lineups = data['lineup_analysis']
+                if 'lineup_breakdown' in data:
+                    lineups = data['lineup_breakdown']
                     print(f"   📈 Lineups analyzed: {len(lineups)}")
                 
                 if 'monthly_trends' in data:

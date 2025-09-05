@@ -245,6 +245,226 @@ class TeslaFinancialAPITester:
         
         return success
 
+    def test_enhanced_features(self):
+        """Test enhanced features endpoint"""
+        success, response = self.run_test(
+            "Enhanced Features Test",
+            "GET",
+            "tesla/test-enhanced",
+            200
+        )
+        
+        if success and response:
+            if response.get('success'):
+                print(f"   ✅ Enhanced features working")
+                sample_data = response.get('sample_data', {})
+                if sample_data:
+                    print(f"   📊 Scenario: {sample_data.get('scenario')}")
+                    print(f"   📅 Year: {sample_data.get('year')}")
+                    deliveries = sample_data.get('projected_deliveries', {})
+                    print(f"   🚗 Vehicle models: {len(deliveries)} models")
+                    total_deliveries = sum(deliveries.values()) if deliveries else 0
+                    print(f"   📈 Total projected deliveries: {total_deliveries:,.0f}")
+            else:
+                print(f"   ❌ Enhanced features test failed: {response.get('error')}")
+        
+        return success
+
+    def test_enhanced_model_generation(self, scenario):
+        """Test enhanced financial model generation"""
+        success, response = self.run_test(
+            f"Generate Enhanced {scenario.title()} Model",
+            "POST",
+            f"tesla/enhanced-model/{scenario}",
+            200
+        )
+        
+        if success and response:
+            if response.get('success'):
+                print(f"   ✅ Enhanced model generated successfully")
+                model = response.get('model', {})
+                if model:
+                    income_statements = model.get('income_statements', [])
+                    print(f"   📈 Income statements: {len(income_statements)} (10-year forecast)")
+                    
+                    # Check for vehicle model breakdown
+                    if income_statements:
+                        first_stmt = income_statements[0]
+                        revenue_breakdown = first_stmt.get('revenue_breakdown', {})
+                        auto_models = revenue_breakdown.get('automotive_revenue_by_model', {})
+                        print(f"   🚗 Vehicle models tracked: {len(auto_models)}")
+                        
+                        # Check business segments
+                        segments = ['automotive_revenue', 'energy_revenue', 'services_revenue']
+                        available_segments = [s for s in segments if s in first_stmt]
+                        print(f"   🏢 Business segments: {len(available_segments)}")
+            else:
+                print(f"   ❌ Enhanced model generation failed")
+        
+        return success
+
+    def test_enhanced_comparison(self):
+        """Test enhanced scenario comparison"""
+        success, response = self.run_test(
+            "Enhanced Scenario Comparison",
+            "GET",
+            "tesla/enhanced-comparison",
+            200
+        )
+        
+        if success and response:
+            enhanced_models = response.get('enhanced_models', {})
+            comparison = response.get('comparison_summary', {})
+            
+            print(f"   📊 Enhanced models: {list(enhanced_models.keys())}")
+            
+            if comparison:
+                vehicle_comp = comparison.get('vehicle_model_comparison', {})
+                segment_comp = comparison.get('segment_comparison', {})
+                print(f"   🚗 Vehicle model comparison: {len(vehicle_comp)} scenarios")
+                print(f"   🏢 Segment comparison: {len(segment_comp)} scenarios")
+                
+                # Check 10-year CAGR
+                revenue_comp = comparison.get('revenue_comparison', {})
+                if revenue_comp:
+                    for scenario, data in revenue_comp.items():
+                        cagr = data.get('10yr_cagr', 0)
+                        print(f"   📈 {scenario.title()} 10yr CAGR: {cagr*100:.1f}%")
+            else:
+                print(f"   ⚠️  No enhanced comparison found")
+        
+        return success
+
+    def test_vehicle_analysis(self, scenario):
+        """Test vehicle model analysis (PHASE 1)"""
+        success, response = self.run_test(
+            f"Vehicle Analysis - {scenario.title()}",
+            "GET",
+            f"tesla/vehicle-analysis/{scenario}",
+            200
+        )
+        
+        if success and response:
+            vehicle_analysis = response.get('vehicle_analysis', {})
+            if vehicle_analysis:
+                vehicle_trends = vehicle_analysis.get('vehicle_trends', {})
+                model_performance = vehicle_analysis.get('model_performance', {})
+                
+                print(f"   🚗 Years tracked: {len(vehicle_trends)}")
+                print(f"   📊 Vehicle models: {len(model_performance)}")
+                
+                # Show sample model performance
+                for model_name, performance in list(model_performance.items())[:2]:
+                    delivery_cagr = performance.get('delivery_cagr', 0)
+                    print(f"   📈 {model_name} delivery CAGR: {delivery_cagr*100:.1f}%")
+            else:
+                print(f"   ⚠️  No vehicle analysis found")
+        
+        return success
+
+    def test_segment_analysis(self):
+        """Test business segment analysis (PHASE 2)"""
+        success, response = self.run_test(
+            "Business Segment Analysis",
+            "GET",
+            "tesla/segment-analysis",
+            200
+        )
+        
+        if success and response:
+            segment_analysis = response.get('segment_analysis', {})
+            if segment_analysis:
+                segments = segment_analysis.get('segments', {})
+                print(f"   🏢 Business segments analyzed: {len(segments)}")
+                
+                # Check segment projections
+                for segment_name, segment_data in segments.items():
+                    projections = segment_data.get('projections', {})
+                    print(f"   📊 {segment_name}: {len(projections)} scenario projections")
+            else:
+                print(f"   ⚠️  No segment analysis found")
+        
+        return success
+
+    def test_bridge_analysis(self, scenario):
+        """Test bridge analysis (PHASE 3)"""
+        success, response = self.run_test(
+            f"Bridge Analysis - {scenario.title()}",
+            "GET",
+            f"tesla/bridge-analysis/{scenario}",
+            200
+        )
+        
+        if success and response:
+            revenue_bridge = response.get('revenue_bridge', {})
+            cash_flow_bridge = response.get('cash_flow_bridge', {})
+            
+            if revenue_bridge:
+                components = revenue_bridge.get('components', {})
+                print(f"   💰 Revenue bridge components: {len(components)}")
+                
+                # Show key components
+                for component, value in list(components.items())[:3]:
+                    print(f"   📈 {component}: ${value:,.0f}")
+            
+            if cash_flow_bridge:
+                cf_components = cash_flow_bridge.get('components', {})
+                print(f"   💸 Cash flow bridge components: {len(cf_components)}")
+            
+            if not revenue_bridge and not cash_flow_bridge:
+                print(f"   ⚠️  No bridge analysis found")
+        
+        return success
+
+    def test_price_volume_mix(self):
+        """Test price-volume-mix analysis (PHASE 3)"""
+        success, response = self.run_test(
+            "Price-Volume-Mix Analysis",
+            "GET",
+            "tesla/price-volume-mix",
+            200
+        )
+        
+        if success and response:
+            pvm_analysis = response.get('price_volume_mix_analysis', {})
+            if pvm_analysis:
+                scenarios = pvm_analysis.get('scenarios', {})
+                print(f"   📊 PVM scenarios analyzed: {len(scenarios)}")
+                
+                # Check analysis components
+                for scenario, data in scenarios.items():
+                    volume_analysis = data.get('volume_analysis', {})
+                    price_analysis = data.get('price_analysis', {})
+                    print(f"   📈 {scenario}: Volume trends: {len(volume_analysis)}, Price trends: {len(price_analysis)}")
+            else:
+                print(f"   ⚠️  No price-volume-mix analysis found")
+        
+        return success
+
+    def test_comprehensive_analysis(self):
+        """Test comprehensive analysis endpoint"""
+        success, response = self.run_test(
+            "Comprehensive Analysis",
+            "GET",
+            "tesla/comprehensive-analysis",
+            200
+        )
+        
+        if success and response:
+            comprehensive = response.get('comprehensive_analysis', {})
+            model_features = response.get('model_features', [])
+            
+            print(f"   🎯 Model features: {len(model_features)}")
+            for feature in model_features[:3]:
+                print(f"   ✅ {feature}")
+            
+            if comprehensive:
+                print(f"   📊 Comprehensive analysis keys: {list(comprehensive.keys())}")
+            else:
+                print(f"   ⚠️  No comprehensive analysis found")
+        
+        return success
+
     def run_comprehensive_test(self):
         """Run all tests in sequence"""
         print("🚀 Starting Tesla Financial Model API Testing")

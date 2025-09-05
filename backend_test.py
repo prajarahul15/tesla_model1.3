@@ -467,7 +467,7 @@ class TeslaFinancialAPITester:
 
     def run_comprehensive_test(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Tesla Financial Model API Testing")
+        print("🚀 Starting Tesla Financial Model API Testing (Phase 1-3 Enhanced)")
         print(f"📍 Base URL: {self.base_url}")
         print("=" * 60)
 
@@ -476,16 +476,52 @@ class TeslaFinancialAPITester:
             print("❌ Tesla Overview failed - stopping tests")
             return False
 
-        # Test 2: Generate models for all scenarios
-        print(f"\n📈 Testing Model Generation for All Scenarios")
+        # Test 2: Enhanced Features Test
+        print(f"\n🔧 Testing Enhanced Features")
+        if not self.test_enhanced_features():
+            print("❌ Enhanced features test failed")
+            return False
+
+        # Test 3: Generate enhanced models for all scenarios (PHASE 1-3)
+        print(f"\n📈 Testing Enhanced Model Generation (10-year forecasts)")
         for scenario in self.scenarios:
-            if not self.test_scenario_model_generation(scenario):
-                print(f"❌ {scenario} model generation failed")
+            if not self.test_enhanced_model_generation(scenario):
+                print(f"❌ Enhanced {scenario} model generation failed")
                 return False
 
-        # Test 3: Test financial statements for base scenario
-        print(f"\n📊 Testing Financial Statements (Base Scenario)")
+        # Test 4: Test enhanced scenario comparison
+        print(f"\n🔄 Testing Enhanced Scenario Comparison")
+        if not self.test_enhanced_comparison():
+            print(f"❌ Enhanced scenario comparison failed")
+
+        # Test 5: PHASE 1 - Vehicle Model Analysis
+        print(f"\n🚗 Testing Vehicle Model Analysis (PHASE 1)")
         base_scenario = 'base'
+        if not self.test_vehicle_analysis(base_scenario):
+            print(f"❌ Vehicle analysis failed")
+
+        # Test 6: PHASE 2 - Business Segment Analysis
+        print(f"\n🏢 Testing Business Segment Analysis (PHASE 2)")
+        if not self.test_segment_analysis():
+            print(f"❌ Segment analysis failed")
+
+        # Test 7: PHASE 3 - Bridge Analysis
+        print(f"\n🌉 Testing Bridge Analysis (PHASE 3)")
+        if not self.test_bridge_analysis(base_scenario):
+            print(f"❌ Bridge analysis failed")
+
+        # Test 8: PHASE 3 - Price-Volume-Mix Analysis
+        print(f"\n📊 Testing Price-Volume-Mix Analysis (PHASE 3)")
+        if not self.test_price_volume_mix():
+            print(f"❌ Price-Volume-Mix analysis failed")
+
+        # Test 9: Comprehensive Analysis
+        print(f"\n🎯 Testing Comprehensive Analysis")
+        if not self.test_comprehensive_analysis():
+            print(f"❌ Comprehensive analysis failed")
+
+        # Test 10: Original financial statements for compatibility
+        print(f"\n📊 Testing Original Financial Statements (Compatibility)")
         
         if not self.test_income_statement(base_scenario):
             print(f"❌ Income statement test failed")
@@ -496,21 +532,21 @@ class TeslaFinancialAPITester:
         if not self.test_cash_flow(base_scenario):
             print(f"❌ Cash flow test failed")
 
-        # Test 4: Test DCF valuation for all scenarios
+        # Test 11: Test DCF valuation for all scenarios
         print(f"\n🎯 Testing DCF Valuations")
         for scenario in self.scenarios:
             if not self.test_dcf_valuation(scenario):
                 print(f"❌ {scenario} DCF valuation failed")
 
-        # Test 5: Test sensitivity analysis for base scenario
+        # Test 12: Test sensitivity analysis for base scenario
         print(f"\n📈 Testing Sensitivity Analysis")
         if not self.test_sensitivity_analysis(base_scenario):
             print(f"❌ Sensitivity analysis failed")
 
-        # Test 6: Test scenario comparison
-        print(f"\n🔄 Testing Scenario Comparison")
+        # Test 13: Test original scenario comparison for compatibility
+        print(f"\n🔄 Testing Original Scenario Comparison (Compatibility)")
         if not self.test_scenario_comparison():
-            print(f"❌ Scenario comparison failed")
+            print(f"❌ Original scenario comparison failed")
 
         return True
 

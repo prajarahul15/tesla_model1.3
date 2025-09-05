@@ -85,7 +85,7 @@ const DataOverview = () => {
     <div className="space-y-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-2">📊 Data Overview & Performance Analysis</h2>
+        <h2 className="text-2xl font-bold mb-2">Data Overview & Performance Analysis</h2>
         <p className="text-blue-100">Historical performance metrics and variance analysis across all profiles</p>
       </div>
 

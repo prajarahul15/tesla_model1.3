@@ -198,6 +198,10 @@ const TeslaDashboard = () => {
               />
             )}
 
+            {activeTab === 'vehicle-models' && (
+              <VehicleModelAnalysis />
+            )}
+
             {activeTab === 'statements' && (
               <FinancialStatements 
                 scenario={activeScenario}
@@ -214,6 +218,14 @@ const TeslaDashboard = () => {
                 generateModel={generateFinancialModel}
                 loading={loading}
               />
+            )}
+
+            {activeTab === 'segments' && (
+              <BusinessSegmentAnalysis />
+            )}
+
+            {activeTab === 'bridge-analysis' && (
+              <BridgeAnalysis />
             )}
 
             {activeTab === 'comparison' && (

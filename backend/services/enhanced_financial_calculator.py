@@ -205,42 +205,42 @@ class EnhancedTeslaCalculator:
             "drivers": {k: float(v) if isinstance(v, (int, float)) else v for k, v in drivers.items()},
             
             # Income statement items
-            "automotive_revenue": revenue_breakdown["total_automotive_revenue"],
-            "energy_revenue": revenue_breakdown["energy_revenue"],
-            "services_revenue": revenue_breakdown["services_revenue"],
-            "total_revenue": total_revenue,
+            "automotive_revenue": float(revenue_breakdown["total_automotive_revenue"]),
+            "energy_revenue": float(revenue_breakdown["energy_revenue"]),
+            "services_revenue": float(revenue_breakdown["services_revenue"]),
+            "total_revenue": float(total_revenue),
             
-            "automotive_cogs": margins["automotive_cogs"],
-            "energy_cogs": margins["energy_cogs"],
-            "services_cogs": margins["services_cogs"],
-            "total_cogs": margins["total_cogs"],
+            "automotive_cogs": float(margins["automotive_cogs"]),
+            "energy_cogs": float(margins["energy_cogs"]),
+            "services_cogs": float(margins["services_cogs"]),
+            "total_cogs": float(margins["total_cogs"]),
             
-            "automotive_gross_profit": margins["automotive_gross_profit"],
-            "energy_gross_profit": margins["energy_gross_profit"],
-            "services_gross_profit": margins["services_gross_profit"],
-            "total_gross_profit": margins["total_gross_profit"],
-            "gross_margin": margins["total_margin"],
+            "automotive_gross_profit": float(margins["automotive_gross_profit"]),
+            "energy_gross_profit": float(margins["energy_gross_profit"]),
+            "services_gross_profit": float(margins["services_gross_profit"]),
+            "total_gross_profit": float(margins["total_gross_profit"]),
+            "gross_margin": float(margins["total_margin"]),
             
-            "research_development": rd_expense,
-            "selling_general_admin": sga_expense,
-            "total_operating_expenses": total_opex,
+            "research_development": float(rd_expense),
+            "selling_general_admin": float(sga_expense),
+            "total_operating_expenses": float(total_opex),
             
-            "operating_income": operating_income,
-            "operating_margin": operating_margin,
+            "operating_income": float(operating_income),
+            "operating_margin": float(operating_margin),
             
-            "interest_income": interest_income,
-            "interest_expense": interest_expense,
-            "other_income": other_income,
+            "interest_income": float(interest_income),
+            "interest_expense": float(interest_expense),
+            "other_income": float(other_income),
             
-            "pretax_income": pretax_income,
-            "income_tax_expense": tax_expense,
-            "effective_tax_rate": drivers["tax_rate"],
+            "pretax_income": float(pretax_income),
+            "income_tax_expense": float(tax_expense),
+            "effective_tax_rate": float(drivers["tax_rate"]),
             
-            "net_income": net_income,
-            "net_margin": net_margin,
+            "net_income": float(net_income),
+            "net_margin": float(net_margin),
             
-            "shares_outstanding": shares_outstanding,
-            "earnings_per_share": eps
+            "shares_outstanding": float(shares_outstanding),
+            "earnings_per_share": float(eps)
         }
     
     def calculate_enhanced_working_capital(self, income_statement: Dict, drivers: Dict) -> Dict:

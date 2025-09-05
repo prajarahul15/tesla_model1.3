@@ -206,6 +206,31 @@ async def compare_forecasts(request: CompareRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error comparing forecasts: {str(e)}")
 
+@api_router.get("/tesla/test-enhanced")
+async def test_enhanced_features():
+    """Test enhanced features"""
+    try:
+        # Test basic enhanced calculator functionality
+        from data.tesla_enhanced_data import get_enhanced_tesla_drivers
+        
+        drivers = get_enhanced_tesla_drivers(ScenarioType.BASE, 2024)
+        
+        return {
+            "success": True,
+            "message": "Enhanced features working",
+            "sample_data": {
+                "scenario": drivers["scenario"].value,
+                "year": drivers["year"],
+                "projected_deliveries": {k: int(v) for k, v in drivers["projected_deliveries"].items()},
+                "energy_growth_rate": float(drivers["energy_growth_rate"])
+            }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 # Enhanced Tesla Financial Model Endpoints (PHASE 1-3)
 
 @api_router.post("/tesla/enhanced-model/{scenario}")
